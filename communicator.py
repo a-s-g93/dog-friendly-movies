@@ -86,11 +86,62 @@ class Communicator:
 
         try:
             with self.driver.session(database=self.database_name) as session:
-                print("database name: ", self.database_name)
                 result = session.execute_write(load)
-                print("result: ", result)
 
                 return result
+
+        except ConstraintError as err:
+            print(err)
+
+            session.close()
+
+    def get_media_titles(self):
+        """
+        This method retrieves all movie titles and thier id so they can be searched
+        within the app.
+        """
+
+        def get(tx):
+            return tx.run(
+                """
+                match (m:Media)
+                return m.id as id, m.title as title
+                order by title
+                """
+            ).data()
+
+        try:
+            with self.driver.session(database=self.database_name) as session:
+                result = session.execute_read(get)
+
+                return result
+
+        except ConstraintError as err:
+            print(err)
+
+            session.close()
+
+    def get_media_data(self, media_id: int):
+        """
+        This method retrieves data for a given media id.
+        """
+
+        def get(tx):
+            return tx.run(
+                """
+                match p=(m:Media {id: $media_id})-[]-(te)-[]-(t:Topic)
+                with te, t.title as title, te.yesCount + te.noCount as voteCount, m
+                with collect(te{.description, .confidence, voteCount, title}) as trigger, m
+                return m.title, m.releaseYear, m.overview, trigger
+                """,
+                media_id=media_id,
+            ).data()
+
+        try:
+            with self.driver.session(database=self.database_name) as session:
+                result = session.execute_read(get)
+
+                return result[0]
 
         except ConstraintError as err:
             print(err)
