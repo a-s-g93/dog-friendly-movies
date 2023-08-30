@@ -147,3 +147,58 @@ class Communicator:
             print(err)
 
             session.close()
+
+    def get_warning_titles(self):
+        """
+        This method retrieves all warning titles and thier id so they can be searched
+        within the app.
+        """
+
+        def get(tx):
+            return tx.run(
+                """
+                match (t:Topic)
+                return t.id as id, t.title as title
+                order by title
+                """
+            ).data()
+
+        try:
+            with self.driver.session(database=self.database_name) as session:
+                result = session.execute_read(get)
+
+                return result
+
+        except ConstraintError as err:
+            print(err)
+
+            session.close()
+
+    def get_warning_data(self, id_list):
+        """
+        This method retrieves data for given warning ids.
+        """
+
+        def get(tx):
+            return tx.run(
+                """
+                unwind $id_list as id
+
+                match p=(m:Media)-[]-(te)-[]-(t:Topic {id: id})
+                with te, t.title as title, te.yesCount + te.noCount as voteCount, m
+                with collect(te{.description, .confidence, voteCount, title}) as trigger, m
+                return m.title, m.type, trigger
+                """,
+                id_list=id_list,
+            ).data()
+
+        try:
+            with self.driver.session(database=self.database_name) as session:
+                result = session.execute_read(get)
+
+                return result
+
+        except ConstraintError as err:
+            print(err)
+
+            session.close()
