@@ -19,3 +19,24 @@ def format_data(data, vote_threshold):
     df = df[df["voteCount"] >= vote_threshold]
 
     return df.sort_values(["buckets", "title"], ascending=[False, True])
+
+
+def get_bin(label):
+    """
+    This method returns the bin of the given confidence label.
+    """
+
+    if label == 0:
+        return (-1, 0)
+    elif label == 1:
+        return (0, 0.5)
+    elif label == 2:
+        return (0.5, 0.9)
+    elif label == 3:
+        return (0.9, 1.1)
+    elif label == 4:
+        return (1.1, 2)
+    elif label == 5:
+        return (2, np.inf)
+    else:
+        return (None, None)

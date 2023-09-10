@@ -25,7 +25,7 @@ try:
     selected_media = st.selectbox(
         "Select Media",
         media_options,
-        format_func=lambda x: x["title"],
+        format_func=lambda x: x["title"] + " - " + x["mediaType"] + " - " + x["year"],
         placeholder="Select Media...",
     )
 

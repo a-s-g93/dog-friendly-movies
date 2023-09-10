@@ -105,7 +105,7 @@ class Communicator:
             return tx.run(
                 """
                 match (m:Media)
-                return m.id as id, m.title as title
+                return m.id as id, m.title as title, m.releaseYear as year, m.type as mediaType
                 order by title
                 """
             ).data()
@@ -174,7 +174,7 @@ class Communicator:
 
             session.close()
 
-    def get_warning_data(self, id_list):
+    def get_warning_data(self, id_list, start_conf, stop_conf, votes_threshold):
         """
         This method retrieves data for given warning ids.
         """
@@ -185,11 +185,16 @@ class Communicator:
                 unwind $id_list as id
 
                 match p=(m:Media)-[]-(te)-[]-(t:Topic {id: id})
+                where $start < te.confidence <= $stop
+                    and te.noCount + te.yesCount >= $votes_threshold
                 with te, t.title as title, te.yesCount + te.noCount as voteCount, m
                 with collect(te{.description, .confidence, voteCount, title}) as trigger, m
                 return m.title, m.type, trigger
                 """,
                 id_list=id_list,
+                start=start_conf,
+                stop=stop_conf,
+                votes_threshold=votes_threshold,
             ).data()
 
         try:
