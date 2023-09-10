@@ -21,6 +21,10 @@ try:
     st.header("Mindful Movies")
     st.subheader("Search Media")
 
+    with open("ui/sidebar.md", "r") as sidebar_file:
+        sidebar_content = sidebar_file.read()
+
+    st.sidebar.markdown(sidebar_content)
     # get list of movies to search
     selected_media = st.selectbox(
         "Select Media",

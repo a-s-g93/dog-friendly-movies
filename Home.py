@@ -4,6 +4,12 @@ from urllib.error import URLError
 try:
     st.header("Mindful Movies")
 
+    with open("ui/sidebar.md", "r") as sidebar_file:
+        sidebar_content = sidebar_file.read()
+
+    st.sidebar.markdown(sidebar_content)
+
+    st.markdown(sidebar_content)
 
 # ------------------------------------
 # ERRORS -----------------------------
